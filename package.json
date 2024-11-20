@@ -1,0 +1,20 @@
+{
+  "name": "layer-sense",
+  "version": "1.0.0",
+  "description": "Layer sense predicts the next layer in a sequence when developing a pipeline in Noodlr",
+  "main": "index.js",
+  "scripts": {
+    "build": "node esbuild.config.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@tensorflow/tfjs": "4.22.0",
+    "@tensorflow/tfjs-node": "4.22.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.24.0",
+    "typescript": "5.6.3"
+  }
+}
