@@ -128,7 +128,7 @@ await model.fit(tfXTrain, tfYTrain, {
   validationSplit: 0.2
 });
 console.log("after fit");
-const testSeq = [layerToIdx["Dropout"], layerToIdx["Dense"]];
+const testSeq = [layerToIdx["MaxPooling"], layerToIdx["Flatten"]];
 const paddedSeq = new Array(maxLen).fill(layerToIdx["PAD"]);
 paddedSeq.splice(0, testSeq.length, ...testSeq);
 console.log(paddedSeq);

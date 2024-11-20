@@ -85,7 +85,7 @@ function buildIndices(vocab: string[]) {
 
 // padSequences ensures all of the x-values are the same length
 function padSequences(sequences: number[][]) {
-    const maxLen = Math.max(...xTrain.map(x => x.length), 2); // Note: this is very important, the sequence input needs to be at least, even if the second element is PAD !important!
+    const maxLen = Math.max(...xTrain.map(x => x.length), 2); // Note: this is very important, the sequence input needs to be at least 2, even if the second element is PAD !important!
     const paddedSequences = sequences.map(seq => {
         const pad = new Array(maxLen - seq.length).fill(layerToIdx["PAD"]);
         return [...seq, ...pad];
@@ -159,13 +159,14 @@ await model.fit(tfXTrain, tfYTrain, {
 console.log('after fit');
 
 // const testSeq = [layerToIdx["Conv2D"], layerToIdx["MaxPooling"], layerToIdx["Flatten"]];
+const testSeq = [layerToIdx["MaxPooling"], layerToIdx["Flatten"]];
 // const testSeq = [layerToIdx["Dense"]];
 // const testSeq = [layerToIdx["Dropout"]];
 // const testSeq = [layerToIdx["Conv2D"], layerToIdx["MaxPooling"]];
 // const testSeq = [layerToIdx["Conv2D"]];
 // const testSeq = [layerToIdx["Flatten"]];
 // const testSeq = [layerToIdx["Dense"], layerToIdx["Dropout"]];
-const testSeq = [layerToIdx["Dropout"], layerToIdx["Dense"]];
+// const testSeq = [layerToIdx["Dropout"], layerToIdx["Dense"]];
 // const inputSeq = testSeq.map(layer => layerToIdx[layer]);
 const paddedSeq = new Array(maxLen).fill(layerToIdx["PAD"]); // Pad with 0
 paddedSeq.splice(0, testSeq.length, ...testSeq);

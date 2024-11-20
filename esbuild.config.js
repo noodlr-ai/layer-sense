@@ -1,7 +1,7 @@
 import { context } from 'esbuild';
 
 let build = await context({
-    entryPoints: ['src/index.ts'],
+    entryPoints: ['src/layer_sequence.ts', 'src/feature_sequence.ts'],
     outdir: 'build',
     // bundle: true,
     format: 'esm',
