@@ -1,53 +1,19 @@
 import * as tf from "@tensorflow/tfjs";
-const vocab = ["PAD", "Conv2D", "MaxPooling", "Dense", "Dropout", "Flatten"];
+const vocab = ["PAD", "Dataset", "RowSplit", "ColumnSplit", "ColumnSplice", "Dense", "Dropout", "BatchNormalization", "Training", "Launcher", "ManualDataEntry", "DataViewer", "Transformer"];
 const sequences = [
-  ["Conv2D", "MaxPooling", "Dense"],
-  ["Conv2D", "MaxPooling", "Dense"],
-  ["Conv2D", "MaxPooling", "Dense"],
-  ["Conv2D", "MaxPooling", "Dense"],
-  ["Conv2D", "MaxPooling", "Dense"],
-  ["Conv2D", "MaxPooling", "Dense"],
-  ["Conv2D", "MaxPooling", "Dense"],
-  ["Conv2D", "MaxPooling", "Flatten", "Dense"],
-  ["Conv2D", "MaxPooling", "Flatten", "Dense"],
-  ["Conv2D", "MaxPooling", "Flatten", "Dense"],
-  ["Conv2D", "MaxPooling", "Flatten", "Dense"],
-  ["Conv2D", "MaxPooling", "Flatten", "Dense"],
-  ["Conv2D", "MaxPooling", "Flatten", "Dense"],
-  ["Dense", "Dropout", "Dense"],
-  ["Dense", "Dropout", "Dense"],
-  ["Dense", "Dropout", "Dense"],
-  ["Dense", "Dropout", "Dense"],
-  ["Dense", "Dropout", "Dense"],
-  ["Dense", "Dropout", "Dense"],
-  ["Dense", "Dropout", "Dense"],
-  ["Dense", "Dropout", "Dense"],
-  ["Dense", "Dropout", "Dense"],
-  ["Dense", "Dropout", "Dense"],
-  ["Dropout", "Dense", "Flatten"],
-  ["Dropout", "Dense", "Flatten"],
-  ["Dropout", "Dense", "Flatten"],
-  ["Dropout", "Dense", "Flatten"],
-  ["Dropout", "Dense", "Flatten"],
-  ["Dropout", "Dense", "Flatten"],
-  ["Dropout", "Dense", "Flatten"],
-  ["Dropout", "Dense", "Flatten"],
-  ["Dropout", "Dense"],
-  ["Dropout", "Dense"],
-  ["Dropout", "Dense"],
-  ["Dropout", "Dense"],
-  ["Dropout", "Dense"],
-  ["Dropout", "Dense"],
-  ["Dropout", "Dense"],
-  ["Dropout", "Dense"],
-  ["Flatten", "Dense"],
-  ["Flatten", "Dense"],
-  ["Flatten", "Dense"],
-  ["Flatten", "Dense"],
-  ["Flatten", "Dense"],
-  ["Flatten", "Dense"],
-  ["Flatten", "Dense"],
-  ["Flatten", "Dense"]
+  ["Launcher", "ManualDataEntry", "Transformer", "DataViewer"],
+  ["Launcher", "ManualDataEntry", "Transformer", "DataViewer"],
+  ["Launcher", "ManualDataEntry", "Transformer", "Transformer", "DataViewer"],
+  ["Dataset", "RowSplit", "ColumnSplit", "Training"],
+  ["Dataset", "RowSplit", "ColumnSplit", "Dense", "Dense", "Dense", "Training"],
+  ["Dataset", "RowSplit", "ColumnSplit", "Dense", "Dense", "Dense", "Training"],
+  ["Dataset", "RowSplit", "ColumnSplit", "Dense", "Dense", "Dense", "Training"],
+  ["Dataset", "RowSplit", "ColumnSplit", "Dense", "Dense", "Dense", "Training"],
+  ["Dataset", "RowSplit", "ColumnSplice", "Training"],
+  ["Dataset", "RowSplit", "ColumnSplice", "Dense", "Dense", "Dense", "Training"],
+  ["Dataset", "RowSplit", "ColumnSplice", "Dense", "Dense", "Dense", "Training"],
+  ["Dataset", "RowSplit", "ColumnSplice", "Dense", "Dense", "Dense", "Training"],
+  ["Dataset", "RowSplit", "ColumnSplice", "Dense", "Dense", "Dense", "Training"]
 ];
 function encodeSequences(sequences2, vocab2) {
   const layerToIdx2 = Object.fromEntries(vocab2.map((layer, idx) => [layer, idx]));
@@ -67,23 +33,20 @@ function buildTrainingData(encodedSequences2) {
 function buildIndices(vocab2) {
   const layerToIdx2 = Object.fromEntries(vocab2.map((layer, idx) => [layer, idx]));
   const idxToLayer2 = Object.fromEntries(vocab2.map((layer, idx) => [idx, layer]));
-  console.log(layerToIdx2);
   return { layerToIdx: layerToIdx2, idxToLayer: idxToLayer2 };
 }
-function padSequences(sequences2) {
-  const maxLen2 = Math.max(...xTrain.map((x) => x.length), 2);
-  const paddedSequences = sequences2.map((seq) => {
-    const pad = new Array(maxLen2 - seq.length).fill(layerToIdx["PAD"]);
-    return [...seq, ...pad];
-  });
-  return { maxLen: maxLen2, paddedSequences };
+function padSequence(sequence, maxLen2) {
+  const pad = new Array(maxLen2 - sequence.length).fill(layerToIdx["PAD"]);
+  return [...sequence, ...pad];
+}
+function padSequences(sequences2, maxLen2) {
+  return sequences2.map((seq) => padSequence(seq, maxLen2));
 }
 const { layerToIdx, idxToLayer } = buildIndices(vocab);
 const encodedSequences = encodeSequences(sequences, vocab);
 const { xTrain, yTrain } = buildTrainingData(encodedSequences);
-const { maxLen, paddedSequences: xTrainPadded } = padSequences(xTrain);
-console.log(`XTrainPadded: `, xTrainPadded);
-console.log(`yTrain: `, yTrain);
+const maxLen = Math.max(...xTrain.map((x) => x.length), 2);
+const xTrainPadded = padSequences(xTrain, maxLen);
 const yTrainOHE = yTrain.map((idx) => {
   const oneHot = new Array(vocab.length).fill(0);
   oneHot[idx] = 1;
@@ -91,10 +54,6 @@ const yTrainOHE = yTrain.map((idx) => {
 });
 const tfXTrain = tf.tensor2d(xTrainPadded);
 const tfYTrain = tf.tensor2d(yTrainOHE);
-console.log(tfXTrain.print());
-console.log(tfYTrain.print());
-console.log(tfXTrain.shape);
-console.log(tfYTrain.shape);
 function createModel(vocabSize, embeddingDim, lstmUnits) {
   const model2 = tf.sequential();
   model2.add(tf.layers.embedding({
@@ -121,17 +80,15 @@ function createModel(vocabSize, embeddingDim, lstmUnits) {
   return model2;
 }
 const model = createModel(vocab.length, 16, 32);
-console.log("before fit");
+console.log("Training model");
 await model.fit(tfXTrain, tfYTrain, {
   epochs: 50,
   batchSize: 2,
   validationSplit: 0.2
 });
-console.log("after fit");
-const testSeq = [layerToIdx["MaxPooling"], layerToIdx["Flatten"]];
-const paddedSeq = new Array(maxLen).fill(layerToIdx["PAD"]);
-paddedSeq.splice(0, testSeq.length, ...testSeq);
-console.log(paddedSeq);
+console.log("Model training complete");
+const testSeq = [layerToIdx["Launcher"], layerToIdx["ManualDataEntry"]];
+const paddedSeq = padSequence(testSeq, maxLen);
 const tfTestSeq = tf.tensor2d([paddedSeq]);
 function displayProbabilities(probs2) {
   console.log("Predicted Probabilities");
@@ -140,10 +97,52 @@ function displayProbabilities(probs2) {
     console.log(p);
   } else {
     const p = probs2.squeeze().arraySync();
-    console.log(p);
     console.log(p.map((prob, idx) => `${idxToLayer[idx]}: ${prob.toFixed(3)}`).join("\n"));
-    console.log(p);
   }
 }
 const probs = model.predict(tfTestSeq);
 displayProbabilities(probs);
+async function treeSearch(model2, startSequence2, maxDepth2, vocab2, layerToIdx2, idxToLayer2) {
+  const priorityQueue = [];
+  priorityQueue.push({ sequence: startSequence2, score: 1 });
+  let bestSequence2 = null;
+  let bestScore2 = 0;
+  while (priorityQueue.length > 0) {
+    const current = priorityQueue.shift();
+    const { sequence, score } = current;
+    if (sequence.length >= maxDepth2) {
+      if (score > bestScore2) {
+        bestScore2 = score;
+        bestSequence2 = sequence;
+      }
+      continue;
+    }
+    const inputSeq = sequence.map((layer) => layerToIdx2[layer]);
+    const paddedInput = padSequence(inputSeq, maxDepth2);
+    const prediction = model2.predict(tf.tensor2d([paddedInput]));
+    const probs2 = (await prediction.array())[0];
+    probs2.forEach((prob, idx) => {
+      if (prob > 0.1) {
+        priorityQueue.push({
+          sequence: [...sequence, idxToLayer2[idx]],
+          score: score * prob
+          // Calculate the new score as a cumulative probability that punishes low-probability paths
+        });
+      }
+    });
+    priorityQueue.sort((a, b) => b.score - a.score);
+  }
+  return { bestSequence: bestSequence2, bestScore: bestScore2 };
+}
+const startSequence = ["Dataset"];
+const maxDepth = 4;
+const { bestSequence, bestScore } = await treeSearch(
+  model,
+  startSequence,
+  maxDepth,
+  vocab,
+  layerToIdx,
+  idxToLayer
+);
+console.log("Best Sequence:", bestSequence);
+console.log("Best Score:", bestScore);
