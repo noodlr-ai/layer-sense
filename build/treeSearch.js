@@ -1,24 +1,23 @@
 // src/layerSequence/treeSearch.ts
-import * as tf from "@tensorflow/tfjs";
-import { idxToLayer, layerToIdx, padSequence } from "./domain.js";
+import { convertSequenceIntoTensors, idxToLayer } from "./domain.js";
 async function treeSearch(model, startSequence, maxDepth) {
   const priorityQueue = [];
   priorityQueue.push({ sequence: startSequence, score: 1 });
-  let bestSequence = null;
+  let bestSequence = [];
   let bestScore = 0;
   while (priorityQueue.length > 0) {
     const current = priorityQueue.shift();
     const { sequence, score } = current;
-    if (sequence.length >= maxDepth) {
+    const appendedDepth = sequence.length - startSequence.length;
+    if (appendedDepth >= maxDepth) {
       if (score > bestScore) {
         bestScore = score;
         bestSequence = sequence;
       }
       continue;
     }
-    const inputSeq = sequence.map((layer) => layerToIdx(layer));
-    const paddedInput = padSequence(inputSeq, maxDepth);
-    const prediction = model.predict(tf.tensor2d([paddedInput]));
+    const inputSeq = convertSequenceIntoTensors(sequence);
+    const prediction = model.predict(inputSeq);
     const probs = (await prediction.array())[0];
     probs.forEach((prob, idx) => {
       if (prob > 0.1) {

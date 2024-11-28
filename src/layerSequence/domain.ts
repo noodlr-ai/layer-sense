@@ -1,5 +1,6 @@
 import * as tf from '@tensorflow/tfjs-node';
 
+// The LayerType is the type of layer that can be used in Noodlr pipelines
 export type LayerType =
     | 'dense'
     | 'dropout'
@@ -12,25 +13,28 @@ export type LayerType =
     | 'launcher'
     | 'manualDataEntry'
     | 'dataViewer'
-    | 'transformer';
+    | 'transformerSentimentAnalysis'
+    | 'transformerSummarization'
+    | 'transformerFillMask';
 
 export type LayerTypeWithPad = 'PAD' | LayerType;
 
 // Vocabulary of layers
-export const vocab: LayerTypeWithPad[] = ['PAD', 'dataset', 'rowSplit', 'columnSplit', 'columnSplice', 'dense', 'dropout', 'batchNormalization', 'training', 'launcher', 'manualDataEntry', 'dataViewer', 'transformer'];
+export const vocab: LayerTypeWithPad[] = ['PAD', 'dataset', 'rowSplit', 'columnSplit', 'columnSplice', 'dense', 'dropout', 'batchNormalization', 'training', 'launcher', 'manualDataEntry', 'dataViewer', 'transformerFillMask', 'transformerSentimentAnalysis', 'transformerSummarization'];
 
 //  layerToIdx maps a layer to its index in the vocabulary
-export function layerToIdx(layer: typeof vocab[0]): number {
+export function layerToIdx(layer: LayerTypeWithPad): number {
     const layerToIdx = Object.fromEntries(vocab.map((layer, idx) => [layer, idx]));
     return layerToIdx[layer];
 }
 
 // idxToLayer maps an index to the layer in the vocabulary
-export function idxToLayer(idx: number): typeof vocab[0] {
+export function idxToLayer(idx: number): LayerTypeWithPad {
     const idxToLayer = Object.fromEntries(vocab.map((layer, idx) => [idx, layer]));
     return idxToLayer[idx];
 }
 
+// padSequence pads a sequence to the maxLen to ensure all sequences are the same length when training the model
 export function padSequence(sequence: number[], maxLen: number) {
     const pad = new Array(maxLen - sequence.length).fill(layerToIdx('PAD'));
     return [...sequence, ...pad];
@@ -62,6 +66,7 @@ export function buildTrainingData(encodedSequences: number[][]) {
     return { xTrain, yTrain };
 }
 
+// convertSequenceIntoTensors converts a sequence of layers into a two-dimensional tensor
 export function convertSequenceIntoTensors(sequence: LayerType[]) {
     const inputSeq = sequence.map(layer => layerToIdx(layer));
     // const paddedSeq = padSequence(inputSeq, maxLen);

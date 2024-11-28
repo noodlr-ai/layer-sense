@@ -1,13 +1,15 @@
 import * as tf from '@tensorflow/tfjs';
-import { LayerType, idxToLayer, layerToIdx, padSequence } from './domain';
+import { LayerType, convertSequenceIntoTensors, idxToLayer, layerToIdx, padSequence } from './domain';
 
-// Implement Tree Search for Sequence Prediction
-export async function treeSearch(model: tf.Sequential, startSequence: LayerType[], maxDepth: number) {
+// treeSearch performs a tree search to find the best sequence of layers doesn to the maxDepth.
+// For instance, if the initial sequence is ['launcher', 'manualDataEntry'], the tree search will find the best sequence of layers that maximizes the probability of the next layer,
+// up to a total length of initial sequence + maxDepth.
+export async function treeSearch(model: tf.LayersModel, startSequence: LayerType[], maxDepth: number) {
     type QueueItem = { sequence: LayerType[], score: number };
     const priorityQueue: QueueItem[] = []; // Priority queue for tree search
     priorityQueue.push({ sequence: startSequence, score: 1.0 }); // Use 1.0 as the base score
 
-    let bestSequence: QueueItem['sequence'] | null = null;
+    let bestSequence: QueueItem['sequence'] = [];
     let bestScore = 0;
 
     // While loop avoids recursion to reduce memory footprint
@@ -16,19 +18,20 @@ export async function treeSearch(model: tf.Sequential, startSequence: LayerType[
         const current = priorityQueue.shift()!;
         const { sequence, score } = current;
 
-        // Once we reach out max depth, see if the score is better than the current best score
-        if (sequence.length >= maxDepth) {
+        // Calculate the appended depth (difference from the initial sequence length)
+        const appendedDepth = sequence.length - startSequence.length;
+
+        // If we have reached the maximum appended depth, update the best score and sequence if applicable
+        if (appendedDepth >= maxDepth) {
             if (score > bestScore) {
                 bestScore = score;
                 bestSequence = sequence;
             }
             continue;
         }
-
         // Predict probabilities for the next layer
-        const inputSeq = sequence.map(layer => layerToIdx(layer));
-        const paddedInput = padSequence(inputSeq, maxDepth);
-        const prediction = model.predict(tf.tensor2d([paddedInput])) as tf.Tensor;
+        const inputSeq = convertSequenceIntoTensors(sequence);
+        const prediction = model.predict(inputSeq) as tf.Tensor;
         const probs = (await prediction.array())[0] as number[];
 
         // Expand the tree for top-k predictions

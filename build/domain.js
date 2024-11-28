@@ -1,6 +1,6 @@
 // src/layerSequence/domain.ts
 import * as tf from "@tensorflow/tfjs-node";
-var vocab = ["PAD", "dataset", "rowSplit", "columnSplit", "columnSplice", "dense", "dropout", "batchNormalization", "training", "launcher", "manualDataEntry", "dataViewer", "transformer"];
+var vocab = ["PAD", "dataset", "rowSplit", "columnSplit", "columnSplice", "dense", "dropout", "batchNormalization", "training", "launcher", "manualDataEntry", "dataViewer", "transformerFillMask", "transformerSentimentAnalysis", "transformerSummarization"];
 function layerToIdx(layer) {
   const layerToIdx2 = Object.fromEntries(vocab.map((layer2, idx) => [layer2, idx]));
   return layerToIdx2[layer];
