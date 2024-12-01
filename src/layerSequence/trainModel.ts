@@ -65,7 +65,7 @@ await model.fit(tfXTrain, tfYTrain, {
     epochs: 50,
     batchSize: 4,
     validationSplit: 0.2,
-    // verbose: 0, // Suppress training output
+    verbose: 0, // Suppress training output
 });
 console.log('Model training complete; saving model to disk');
 await model.save('file://./build/model');

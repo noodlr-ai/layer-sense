@@ -19,8 +19,29 @@ export type LayerType =
 
 export type LayerTypeWithPad = 'PAD' | LayerType;
 
+export type LayerSenseProbabilities = {
+    layer: LayerType;
+    prob: number;
+}
+
 // Vocabulary of layers
-export const vocab: LayerTypeWithPad[] = ['PAD', 'dataset', 'rowSplit', 'columnSplit', 'columnSplice', 'dense', 'dropout', 'batchNormalization', 'training', 'launcher', 'manualDataEntry', 'dataViewer', 'transformerFillMask', 'transformerSentimentAnalysis', 'transformerSummarization'];
+export const vocab: LayerTypeWithPad[] = [
+    'PAD',
+    'dataset',
+    'rowSplit',
+    'columnSplit',
+    'columnSplice',
+    'dense',
+    'dropout',
+    'batchNormalization',
+    'training',
+    'launcher',
+    'manualDataEntry',
+    'dataViewer',
+    'transformerFillMask',
+    'transformerSentimentAnalysis',
+    'transformerSummarization'
+];
 
 //  layerToIdx maps a layer to its index in the vocabulary
 export function layerToIdx(layer: LayerTypeWithPad): number {
@@ -71,4 +92,23 @@ export function convertSequenceIntoTensors(sequence: LayerType[]) {
     const inputSeq = sequence.map(layer => layerToIdx(layer));
     // const paddedSeq = padSequence(inputSeq, maxLen);
     return tf.tensor2d([inputSeq]);
+}
+
+// displayProbabilities displays the probabilities of the next layer
+export function displayProbabilities(probs: tf.Tensor | tf.Tensor[]) {
+    if (Array.isArray(probs)) {
+        const p = probs[0].squeeze().arraySync();
+        console.log(p);
+
+    } else {
+        const p = probs.squeeze().arraySync() as number[];
+        // We add 1 to skip the padding index
+        console.log(p.map((prob, idx) => `${idxToLayer(idx)}: ${prob.toFixed(3)}`).join('\n'));
+    }
+}
+
+// getProbabilities converts tensors into a list of probabilities sorted from highest to lowest
+export function getProbabilities(pTensor: tf.Tensor | tf.Tensor[]) {
+    const probs: number[] = Array.isArray(pTensor) ? pTensor[0].squeeze().arraySync() as number[] : pTensor.squeeze().arraySync() as number[];
+    return probs.map((prob, idx) => ({ layer: idxToLayer(idx), prob })).filter((d): d is LayerSenseProbabilities => d.layer !== 'PAD').sort((a, b) => b.prob - a.prob);
 }

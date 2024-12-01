@@ -49,8 +49,9 @@ var model = createModel(vocab.length, 16, 32);
 await model.fit(tfXTrain, tfYTrain, {
   epochs: 50,
   batchSize: 4,
-  validationSplit: 0.2
-  // verbose: 0, // Suppress training output
+  validationSplit: 0.2,
+  verbose: 0
+  // Suppress training output
 });
 console.log("Model training complete; saving model to disk");
 await model.save("file://./build/model");

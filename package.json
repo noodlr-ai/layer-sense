@@ -5,13 +5,15 @@
   "main": "index.js",
   "scripts": {
     "build": "node esbuild.config.js",
-    "test-layer-sequence": "vitest --watch layerSequence.test.ts",
+    "test-layer-sense": "vitest --watch layerSense.test.ts",
+    "benchmark-layer-sense": "vitest layerSense.benchmark.test.ts",
     "fix-tensorflow": "node utils/fix-tensorflow.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@json2csv/plainjs": "7.0.6",
     "@tensorflow/tfjs": "4.22.0",
     "@tensorflow/tfjs-node": "4.22.0",
     "@types/jest": "29.5.14"

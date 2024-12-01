@@ -1,30 +1,6 @@
 import * as tf from '@tensorflow/tfjs-node';
-import { LayerType, convertSequenceIntoTensors, idxToLayer, layerToIdx } from '../src/layerSequence/domain';
+import { LayerType, convertSequenceIntoTensors, getProbabilities, idxToLayer, layerToIdx } from '../src/layerSequence/domain';
 import { treeSearch } from '../src/layerSequence/treeSearch';
-
-export type LayerSenseProbabilities = {
-    layer: LayerType;
-    prob: number;
-}
-
-// displayProbabilities displays the probabilities of the next layer
-function displayProbabilities(probs: tf.Tensor | tf.Tensor[]) {
-    if (Array.isArray(probs)) {
-        const p = probs[0].squeeze().arraySync();
-        console.log(p);
-
-    } else {
-        const p = probs.squeeze().arraySync() as number[];
-        // We add 1 to skip the padding index
-        console.log(p.map((prob, idx) => `${idxToLayer(idx)}: ${prob.toFixed(3)}`).join('\n'));
-    }
-}
-
-// getProbabilities converts tensors into a list of probabilities sorted from highest to lowest
-function getProbabilities(pTensor: tf.Tensor | tf.Tensor[]) {
-    const probs: number[] = Array.isArray(pTensor) ? pTensor[0].squeeze().arraySync() as number[] : pTensor.squeeze().arraySync() as number[];
-    return probs.map((prob, idx) => ({ layer: idxToLayer(idx), prob })).filter((d): d is LayerSenseProbabilities => d.layer !== 'PAD').sort((a, b) => b.prob - a.prob);
-}
 
 describe('Test Layer Sequence Model', () => {
     let model: tf.LayersModel;
